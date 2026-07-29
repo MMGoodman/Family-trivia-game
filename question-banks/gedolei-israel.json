@@ -1,0 +1,371 @@
+{
+  "format": "family-trivia/v1",
+  "exported_at": "2026-07-29T00:00:00.000Z",
+  "game": {
+    "name": "גדולי ישראל והעולם החרדי",
+    "description": "30 שאלות על רבנים, חסידויות וישיבות. מומלץ לעבור על השאלות ולוודא שהן מתאימות לקהל שלך."
+  },
+  "groups": [],
+  "questions": [
+    {
+      "text": "מה שמו האמיתי של בעל ה\"חפץ חיים\"?",
+      "image_path": null,
+      "weight": 1,
+      "position": 0,
+      "answers": [
+        { "text": "רבי ישראל סלנטר", "is_correct": false, "position": 0 },
+        { "text": "רבי ישראל מאיר הכהן מראדין", "is_correct": true, "position": 1 },
+        { "text": "רבי חיים סולובייצ'יק", "is_correct": false, "position": 2 },
+        { "text": "רבי מאיר שפירא מלובלין", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "מי חיבר את ה\"משנה ברורה\"?",
+      "image_path": null,
+      "weight": 1,
+      "position": 1,
+      "answers": [
+        { "text": "ה\"חפץ חיים\"", "is_correct": true, "position": 0 },
+        { "text": "ה\"חזון איש\"", "is_correct": false, "position": 1 },
+        { "text": "רבי יוסף קארו", "is_correct": false, "position": 2 },
+        { "text": "הרב עובדיה יוסף", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "מי חיבר את ה\"שולחן ערוך\"?",
+      "image_path": null,
+      "weight": 1,
+      "position": 2,
+      "answers": [
+        { "text": "הרמב\"ם", "is_correct": false, "position": 0 },
+        { "text": "הרמ\"א", "is_correct": false, "position": 1 },
+        { "text": "רבי יוסף קארו", "is_correct": true, "position": 2 },
+        { "text": "רש\"י", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "באיזו עיר חיבר רבי יוסף קארו את ה\"שולחן ערוך\"?",
+      "image_path": null,
+      "weight": 2,
+      "position": 3,
+      "answers": [
+        { "text": "ירושלים", "is_correct": false, "position": 0 },
+        { "text": "צפת", "is_correct": true, "position": 1 },
+        { "text": "טבריה", "is_correct": false, "position": 2 },
+        { "text": "חברון", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "מי כתב את ה\"מפה\" — ההגהות למנהג אשכנז על השולחן ערוך?",
+      "image_path": null,
+      "weight": 2,
+      "position": 4,
+      "answers": [
+        { "text": "הגר\"א", "is_correct": false, "position": 0 },
+        { "text": "הט\"ז", "is_correct": false, "position": 1 },
+        { "text": "הש\"ך", "is_correct": false, "position": 2 },
+        { "text": "הרמ\"א", "is_correct": true, "position": 3 }
+      ]
+    },
+    {
+      "text": "מי מכונה \"החזון איש\"?",
+      "image_path": null,
+      "weight": 2,
+      "position": 5,
+      "answers": [
+        { "text": "רבי אברהם ישעיהו קרליץ", "is_correct": true, "position": 0 },
+        { "text": "רבי יעקב ישראל קניבסקי", "is_correct": false, "position": 1 },
+        { "text": "רבי אלעזר מנחם שך", "is_correct": false, "position": 2 },
+        { "text": "רבי איסר זלמן מלצר", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "כיצד כונה רבי יעקב ישראל קניבסקי?",
+      "image_path": null,
+      "weight": 2,
+      "position": 6,
+      "answers": [
+        { "text": "שר התורה", "is_correct": false, "position": 0 },
+        { "text": "הסטייפלר", "is_correct": true, "position": 1 },
+        { "text": "הרב מבריסק", "is_correct": false, "position": 2 },
+        { "text": "אבי הישיבות", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "מי חיבר את סדרת השו\"ת \"יביע אומר\"?",
+      "image_path": null,
+      "weight": 1,
+      "position": 7,
+      "answers": [
+        { "text": "הרב מרדכי אליהו", "is_correct": false, "position": 0 },
+        { "text": "הבן איש חי", "is_correct": false, "position": 1 },
+        { "text": "הרב עובדיה יוסף", "is_correct": true, "position": 2 },
+        { "text": "הרב בן ציון אבא שאול", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "מי היה ה\"בן איש חי\"?",
+      "image_path": null,
+      "weight": 2,
+      "position": 8,
+      "answers": [
+        { "text": "רבי יוסף חיים מבגדד", "is_correct": true, "position": 0 },
+        { "text": "רבי עבדאללה סומך", "is_correct": false, "position": 1 },
+        { "text": "רבי יהודה פתיה", "is_correct": false, "position": 2 },
+        { "text": "רבי צדקה חוצין", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "מי ייסד את תנועת החסידות?",
+      "image_path": null,
+      "weight": 1,
+      "position": 9,
+      "answers": [
+        { "text": "המגיד ממזריטש", "is_correct": false, "position": 0 },
+        { "text": "רבי נחמן מברסלב", "is_correct": false, "position": 1 },
+        { "text": "הבעל שם טוב", "is_correct": true, "position": 2 },
+        { "text": "רבי שניאור זלמן מלאדי", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "מי חיבר את ספר ה\"תניא\"?",
+      "image_path": null,
+      "weight": 2,
+      "position": 10,
+      "answers": [
+        { "text": "רבי שניאור זלמן מלאדי", "is_correct": true, "position": 0 },
+        { "text": "הרבי מליובאוויטש", "is_correct": false, "position": 1 },
+        { "text": "המגיד ממזריטש", "is_correct": false, "position": 2 },
+        { "text": "רבי לוי יצחק מברדיטשב", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "המילה חב\"ד היא ראשי תיבות של:",
+      "image_path": null,
+      "weight": 1,
+      "position": 11,
+      "answers": [
+        { "text": "חסד, ברכה, דין", "is_correct": false, "position": 0 },
+        { "text": "חכמה, בינה, דעת", "is_correct": true, "position": 1 },
+        { "text": "חכמה, ברכה, דבקות", "is_correct": false, "position": 2 },
+        { "text": "חיים, בינה, דרך", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "באיזו עיר באוקראינה נמצא ציון רבי נחמן מברסלב?",
+      "image_path": null,
+      "weight": 1,
+      "position": 12,
+      "answers": [
+        { "text": "ברדיטשב", "is_correct": false, "position": 0 },
+        { "text": "מז'יבוז'", "is_correct": false, "position": 1 },
+        { "text": "קייב", "is_correct": false, "position": 2 },
+        { "text": "אומן", "is_correct": true, "position": 3 }
+      ]
+    },
+    {
+      "text": "מי מכונה \"הגר\"א\"?",
+      "image_path": null,
+      "weight": 1,
+      "position": 13,
+      "answers": [
+        { "text": "הגאון רבי אליהו מווילנה", "is_correct": true, "position": 0 },
+        { "text": "רבי אליהו לופיאן", "is_correct": false, "position": 1 },
+        { "text": "רבי אליהו דסלר", "is_correct": false, "position": 2 },
+        { "text": "רבי אלעזר מנחם שך", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "מי ייסד את ישיבת וולוז'ין, המכונה \"אם הישיבות\"?",
+      "image_path": null,
+      "weight": 3,
+      "position": 14,
+      "answers": [
+        { "text": "הנצי\"ב מוולוז'ין", "is_correct": false, "position": 0 },
+        { "text": "רבי חיים מוולוז'ין", "is_correct": true, "position": 1 },
+        { "text": "רבי חיים סולובייצ'יק", "is_correct": false, "position": 2 },
+        { "text": "הגר\"א", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "לאן נמלטה ישיבת מיר בתקופת השואה?",
+      "image_path": null,
+      "weight": 3,
+      "position": 15,
+      "answers": [
+        { "text": "ניו יורק", "is_correct": false, "position": 0 },
+        { "text": "לונדון", "is_correct": false, "position": 1 },
+        { "text": "שנחאי", "is_correct": true, "position": 2 },
+        { "text": "בואנוס איירס", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "מי הקים מחדש את ישיבת פוניבז' בבני ברק?",
+      "image_path": null,
+      "weight": 3,
+      "position": 16,
+      "answers": [
+        { "text": "הרב יוסף שלמה כהנמן", "is_correct": true, "position": 0 },
+        { "text": "הרב אלעזר מנחם שך", "is_correct": false, "position": 1 },
+        { "text": "החזון איש", "is_correct": false, "position": 2 },
+        { "text": "הרב אהרן קוטלר", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "מי ייסד את תנועת המוסר?",
+      "image_path": null,
+      "weight": 2,
+      "position": 17,
+      "answers": [
+        { "text": "החפץ חיים", "is_correct": false, "position": 0 },
+        { "text": "רבי ישראל סלנטר", "is_correct": true, "position": 1 },
+        { "text": "רבי ירוחם ממיר", "is_correct": false, "position": 2 },
+        { "text": "רבי אליהו דסלר", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "מה היה שמו של \"הסבא מסלבודקה\"?",
+      "image_path": null,
+      "weight": 3,
+      "position": 18,
+      "answers": [
+        { "text": "רבי שמחה זיסל זיו", "is_correct": false, "position": 0 },
+        { "text": "רבי יוסף יוזל הורביץ", "is_correct": false, "position": 1 },
+        { "text": "רבי נתן צבי פינקל", "is_correct": true, "position": 2 },
+        { "text": "רבי ישראל סלנטר", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "מי היה האדמו\"ר מסאטמר שהקים את הקהילה בוויליאמסבורג?",
+      "image_path": null,
+      "weight": 2,
+      "position": 19,
+      "answers": [
+        { "text": "רבי אהרן טייטלבוים", "is_correct": false, "position": 0 },
+        { "text": "רבי יואל טייטלבוים", "is_correct": true, "position": 1 },
+        { "text": "רבי משה טייטלבוים", "is_correct": false, "position": 2 },
+        { "text": "רבי זלמן לייב טייטלבוים", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "בעל ה\"שפת אמת\" היה אדמו\"ר בחסידות:",
+      "image_path": null,
+      "weight": 2,
+      "position": 20,
+      "answers": [
+        { "text": "בעלז", "is_correct": false, "position": 0 },
+        { "text": "ויז'ניץ", "is_correct": false, "position": 1 },
+        { "text": "גור", "is_correct": true, "position": 2 },
+        { "text": "אלכסנדר", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "מי כונה \"שר התורה\"?",
+      "image_path": null,
+      "weight": 1,
+      "position": 21,
+      "answers": [
+        { "text": "הרב חיים קניבסקי", "is_correct": true, "position": 0 },
+        { "text": "הרב אהרן לייב שטיינמן", "is_correct": false, "position": 1 },
+        { "text": "הרב יוסף שלום אלישיב", "is_correct": false, "position": 2 },
+        { "text": "הרב גרשון אדלשטיין", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "מי ייסד את תנועת \"דגל התורה\"?",
+      "image_path": null,
+      "weight": 2,
+      "position": 22,
+      "answers": [
+        { "text": "הרב יוסף שלום אלישיב", "is_correct": false, "position": 0 },
+        { "text": "החזון איש", "is_correct": false, "position": 1 },
+        { "text": "הרב אלעזר מנחם שך", "is_correct": true, "position": 2 },
+        { "text": "הרב חיים קניבסקי", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "איזה רב ייסד את תנועת ש\"ס?",
+      "image_path": null,
+      "weight": 1,
+      "position": 23,
+      "answers": [
+        { "text": "הרב מרדכי אליהו", "is_correct": false, "position": 0 },
+        { "text": "הרב עובדיה יוסף", "is_correct": true, "position": 1 },
+        { "text": "הבבא סאלי", "is_correct": false, "position": 2 },
+        { "text": "הרב יצחק יוסף", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "באיזה יישוב חי ופעל הבבא סאלי בשנותיו האחרונות?",
+      "image_path": null,
+      "weight": 1,
+      "position": 24,
+      "answers": [
+        { "text": "ירושלים", "is_correct": false, "position": 0 },
+        { "text": "באר שבע", "is_correct": false, "position": 1 },
+        { "text": "נתיבות", "is_correct": true, "position": 2 },
+        { "text": "צפת", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "מה היה שמו המלא של הבבא סאלי?",
+      "image_path": null,
+      "weight": 2,
+      "position": 25,
+      "answers": [
+        { "text": "רבי ישראל אבוחצירא", "is_correct": true, "position": 0 },
+        { "text": "רבי יעקב אבוחצירא", "is_correct": false, "position": 1 },
+        { "text": "רבי מאיר אבוחצירא", "is_correct": false, "position": 2 },
+        { "text": "רבי דוד אבוחצירא", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "הילולת רבי שמעון בר יוחאי במירון חלה ב:",
+      "image_path": null,
+      "weight": 1,
+      "position": 26,
+      "answers": [
+        { "text": "ט\"ו בשבט", "is_correct": false, "position": 0 },
+        { "text": "ל\"ג בעומר", "is_correct": true, "position": 1 },
+        { "text": "ז' באדר", "is_correct": false, "position": 2 },
+        { "text": "ט\"ו באב", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "מי חיבר את פירוש \"אור החיים\" על התורה?",
+      "image_path": null,
+      "weight": 2,
+      "position": 27,
+      "answers": [
+        { "text": "רבי חיים ויטאל", "is_correct": false, "position": 0 },
+        { "text": "רבי חיים פלאג'י", "is_correct": false, "position": 1 },
+        { "text": "רבי חיים מוולוז'ין", "is_correct": false, "position": 2 },
+        { "text": "רבי חיים בן עטר", "is_correct": true, "position": 3 }
+      ]
+    },
+    {
+      "text": "באיזו ארץ חי ופעל רש\"י?",
+      "image_path": null,
+      "weight": 1,
+      "position": 28,
+      "answers": [
+        { "text": "ספרד", "is_correct": false, "position": 0 },
+        { "text": "צרפת", "is_correct": true, "position": 1 },
+        { "text": "איטליה", "is_correct": false, "position": 2 },
+        { "text": "מצרים", "is_correct": false, "position": 3 }
+      ]
+    },
+    {
+      "text": "מי חיבר את שו\"ת \"אגרות משה\"?",
+      "image_path": null,
+      "weight": 2,
+      "position": 29,
+      "answers": [
+        { "text": "הרב משה שטרנבוך", "is_correct": false, "position": 0 },
+        { "text": "הרב שלמה זלמן אויערבך", "is_correct": false, "position": 1 },
+        { "text": "הרב משה פיינשטיין", "is_correct": true, "position": 2 },
+        { "text": "החזון איש", "is_correct": false, "position": 3 }
+      ]
+    }
+  ]
+}
