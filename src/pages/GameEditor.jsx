@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import * as api from '../lib/api'
 import { correctAnswerOf } from '../lib/scoring'
@@ -14,11 +14,16 @@ export default function GameEditor() {
   const [error, setError] = useState('')
   const [openId, setOpenId] = useState(null)
   const [newGroup, setNewGroup] = useState('')
+  const dirty = useRef(false)
 
   useEffect(() => {
+    // מציגים מיד את העותק המקומי, ומתרעננים מהשרת ברקע.
+    // אם המשתמש כבר התחיל לערוך — לא דורסים את מה שהוא עושה.
+    const cached = api.readCachedGame(gameId)
+    if (cached) setState((s) => s ?? cached)
     api
       .loadFullGame(gameId)
-      .then(setState)
+      .then((fresh) => setState((s) => (dirty.current ? s : fresh)))
       .catch((e) => setError(e.message))
   }, [gameId])
 
@@ -34,6 +39,7 @@ export default function GameEditor() {
   // ---------- עדכוני מצב מקומיים ----------
 
   function patchQuestion(qid, patch) {
+    dirty.current = true
     setState((s) => ({
       ...s,
       questions: s.questions.map((q) => (q.id === qid ? { ...q, ...patch } : q)),
@@ -41,6 +47,7 @@ export default function GameEditor() {
   }
 
   function patchAnswer(qid, aid, patch) {
+    dirty.current = true
     setState((s) => ({
       ...s,
       questions: s.questions.map((q) =>

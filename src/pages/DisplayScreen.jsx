@@ -26,6 +26,9 @@ export default function DisplayScreen() {
   }, [gameId])
 
   useEffect(() => {
+    // מציגים מיד את העותק המקומי, ומתרעננים מהשרת ברקע
+    const cached = api.readCachedGame(gameId)
+    if (cached) setState((s) => s ?? cached)
     reload()
 
     const channel = supabase

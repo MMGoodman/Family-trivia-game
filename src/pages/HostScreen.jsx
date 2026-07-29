@@ -23,8 +23,11 @@ export default function HostScreen() {
   }, [gameId])
 
   useEffect(() => {
+    // מציגים מיד את העותק המקומי, ומתרעננים מהשרת ברקע
+    const cached = api.readCachedGame(gameId)
+    if (cached) setState((s) => s ?? cached)
     reload()
-  }, [reload])
+  }, [gameId, reload])
 
   if (error) return <div className="app banner">{error}</div>
   if (!state) return <div className="center-screen muted">טוען…</div>

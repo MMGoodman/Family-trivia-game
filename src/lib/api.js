@@ -55,8 +55,19 @@ export async function loadFullGame(gameId) {
   }
 }
 
+// קריאת העותק המקומי בלבד — מיידי, בלי רשת. משמש להצגה ראשונית מהירה.
+export function readCachedGame(gameId) {
+  try {
+    const raw = localStorage.getItem(`trivia-cache-${gameId}`)
+    return raw ? { ...JSON.parse(raw), stale: true } : null
+  } catch {
+    return null
+  }
+}
+
 async function fetchFullGame(gameId) {
-  const [game, groups, questions] = await Promise.all([
+  // הכל בסיבוב רשת אחד
+  const [game, groups, questions, votes] = await Promise.all([
     supabase.from('games').select('*').eq('id', gameId).single(),
     supabase.from('groups').select('*').eq('game_id', gameId).order('position'),
     supabase
@@ -64,25 +75,24 @@ async function fetchFullGame(gameId) {
       .select('*, answers(*)')
       .eq('game_id', gameId)
       .order('position'),
+    supabase.from('votes').select('*, questions!inner(game_id)').eq('questions.game_id', gameId),
   ])
   if (game.error) throw game.error
   if (groups.error) throw groups.error
   if (questions.error) throw questions.error
-
-  const questionIds = questions.data.map((q) => q.id)
-  let votes = []
-  if (questionIds.length) {
-    const res = await supabase.from('votes').select('*').in('question_id', questionIds)
-    if (res.error) throw res.error
-    votes = res.data
-  }
+  if (votes.error) throw votes.error
 
   const withSortedAnswers = questions.data.map((q) => ({
     ...q,
     answers: [...(q.answers || [])].sort((a, b) => a.position - b.position),
   }))
 
-  return { game: game.data, groups: groups.data, questions: withSortedAnswers, votes }
+  return {
+    game: game.data,
+    groups: groups.data,
+    questions: withSortedAnswers,
+    votes: votes.data.map(({ questions: _q, ...v }) => v),
+  }
 }
 
 // ---------- קבוצות ----------
