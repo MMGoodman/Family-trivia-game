@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import * as api from '../lib/api'
 import { computeScores, withRanks, correctAnswerOf } from '../lib/scoring'
+import { confirmDialog, promptDialog } from '../components/dialog'
 
 const LETTERS = ['א', 'ב', 'ג', 'ד']
 
@@ -112,12 +113,14 @@ export default function HostScreen() {
   }
 
   async function restartGame() {
-    if (
-      !confirm(
-        'להתחיל את המשחק מהתחלה?\n\nכל התשובות שנרשמו וההתאמות הידניות של הניקוד יימחקו.\nהשאלות והקבוצות יישארו כמו שהן.',
-      )
-    )
-      return
+    const ok = await confirmDialog({
+      title: '🔄 להתחיל את המשחק מהתחלה?',
+      message:
+        'כל התשובות שנרשמו וההתאמות הידניות של הניקוד יימחקו.\nהשאלות והקבוצות יישארו כמו שהן.',
+      confirmText: 'כן, התחל מחדש',
+      danger: true,
+    })
+    if (!ok) return
     stopTimer()
     try {
       // נכנס לתור — מחכה שכל שמירה קודמת תסתיים לפני שמוחקים
@@ -159,10 +162,13 @@ export default function HostScreen() {
   }
 
   async function adjustScore(group) {
-    const raw = prompt(
-      `התאמת ניקוד ידנית ל"${group.name}" (מספר, אפשר שלילי). כרגע: ${group.adjustment || 0}`,
-      String(group.adjustment || 0),
-    )
+    const raw = await promptDialog({
+      title: `התאמת ניקוד — ${group.name}`,
+      message: 'מספר שיתווסף לניקוד (אפשר שלילי, למשל ‎-2). אפס מבטל את ההתאמה.',
+      defaultValue: String(group.adjustment || 0),
+      inputMode: 'numeric',
+      confirmText: 'עדכן ניקוד',
+    })
     if (raw === null) return
     const val = parseInt(raw, 10)
     if (Number.isNaN(val)) return

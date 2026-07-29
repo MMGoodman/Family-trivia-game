@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import * as api from '../lib/api'
 import { correctAnswerOf } from '../lib/scoring'
+import { confirmDialog, promptDialog } from '../components/dialog'
 
 const LETTERS = ['א', 'ב', 'ג', 'ד']
 
@@ -74,7 +75,11 @@ export default function GameEditor() {
   }
 
   async function renameGroup(g) {
-    const name = prompt('שם הקבוצה:', g.name)
+    const name = await promptDialog({
+      title: 'שינוי שם קבוצה',
+      defaultValue: g.name,
+      confirmText: 'שמור',
+    })
     if (!name || name === g.name) return
     setState((s) => ({
       ...s,
@@ -84,7 +89,13 @@ export default function GameEditor() {
   }
 
   async function removeGroup(g) {
-    if (!confirm(`להסיר את "${g.name}"? כל ההצבעות שלה יימחקו.`)) return
+    const ok = await confirmDialog({
+      title: `להסיר את "${g.name}"?`,
+      message: 'כל התשובות שהקבוצה רשמה במשחק יימחקו.',
+      confirmText: 'הסר קבוצה',
+      danger: true,
+    })
+    if (!ok) return
     setState((s) => ({ ...s, groups: s.groups.filter((x) => x.id !== g.id) }))
     api.deleteGroup(g.id).catch(fail)
   }
@@ -102,7 +113,13 @@ export default function GameEditor() {
   }
 
   async function removeQuestion(q) {
-    if (!confirm('למחוק את השאלה?')) return
+    const ok = await confirmDialog({
+      title: 'למחוק את השאלה?',
+      message: q.text ? `"${q.text}"` : 'שאלת תמונה',
+      confirmText: 'מחק שאלה',
+      danger: true,
+    })
+    if (!ok) return
     setState((s) => ({ ...s, questions: s.questions.filter((x) => x.id !== q.id) }))
     try {
       await api.deleteQuestion(q.id)

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { listGames, createGame, deleteGame, updateGame } from '../lib/api'
 import { exportGame, importGame } from '../lib/transfer'
+import { confirmDialog, promptDialog } from '../components/dialog'
 
 export default function GamesList() {
   const [games, setGames] = useState([])
@@ -44,7 +45,13 @@ export default function GamesList() {
   }
 
   async function onDelete(game) {
-    if (!confirm(`למחוק את "${game.name}" לצמיתות? כל השאלות והניקוד יימחקו.`)) return
+    const ok = await confirmDialog({
+      title: `למחוק את "${game.name}" לצמיתות?`,
+      message: 'כל השאלות, הקבוצות והתוצאות של המשחק הזה יימחקו.\nכדאי לעשות ייצוא לפני, ליתר ביטחון.',
+      confirmText: 'מחק לצמיתות',
+      danger: true,
+    })
+    if (!ok) return
     try {
       await deleteGame(game.id)
       refresh()
@@ -54,7 +61,11 @@ export default function GamesList() {
   }
 
   async function onRename(game) {
-    const name = prompt('שם חדש למשחק:', game.name)
+    const name = await promptDialog({
+      title: 'שינוי שם המשחק',
+      defaultValue: game.name,
+      confirmText: 'שמור',
+    })
     if (!name || name === game.name) return
     await updateGame(game.id, { name })
     refresh()
