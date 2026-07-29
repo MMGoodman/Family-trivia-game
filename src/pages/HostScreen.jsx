@@ -14,6 +14,17 @@ export default function HostScreen() {
   const [timerEnd, setTimerEnd] = useState(null)
   const channelRef = useRef(null)
 
+  // תור שמירות: כל הכתיבות לשרת רצות אחת אחרי השנייה, בסדר הלחיצות.
+  // בלי זה, שתי בקשות במקביל יכולות לנחות בסדר הפוך ולדרוס אחת את השנייה
+  // (למשל: איפוס משחק שרץ לפני רישום תשובה שעוד היה באוויר).
+  const writeQueue = useRef(Promise.resolve())
+  function enqueue(fn) {
+    const p = writeQueue.current.then(fn)
+    writeQueue.current = p.catch(() => {}) // שגיאה לא תוקעת את התור
+    p.catch(syncFail)
+    return p
+  }
+
   // ערוץ שידור לשעון — מסך ההקרנה מאזין לו
   useEffect(() => {
     const ch = supabase.channel(`game-${gameId}`)
@@ -67,7 +78,7 @@ export default function HostScreen() {
 
   function setPhase(patch) {
     setState((s) => ({ ...s, game: { ...s.game, ...patch } }))
-    api.updateGame(gameId, patch).catch(syncFail)
+    enqueue(() => api.updateGame(gameId, patch))
   }
 
   // ---------- שעון ----------
@@ -109,10 +120,11 @@ export default function HostScreen() {
       return
     stopTimer()
     try {
-      await api.resetGame(gameId, questions.map((q) => q.id))
+      // נכנס לתור — מחכה שכל שמירה קודמת תסתיים לפני שמוחקים
+      await enqueue(() => api.resetGame(gameId, questions.map((q) => q.id)))
       await reload()
-    } catch (e) {
-      syncFail(e)
+    } catch {
+      /* השגיאה כבר טופלה בתור */
     }
   }
 
@@ -133,7 +145,7 @@ export default function HostScreen() {
         ...s,
         votes: s.votes.filter((v) => !(v.question_id === qid && v.group_id === group.id)),
       }))
-      api.clearVote(qid, group.id).catch(syncFail)
+      enqueue(() => api.clearVote(qid, group.id))
     } else {
       setState((s) => ({
         ...s,
@@ -142,7 +154,7 @@ export default function HostScreen() {
           { id: `tmp-${qid}-${group.id}`, question_id: qid, group_id: group.id, answer_id: answer.id },
         ],
       }))
-      api.castVote(qid, group.id, answer.id).catch(syncFail)
+      enqueue(() => api.castVote(qid, group.id, answer.id))
     }
   }
 
@@ -158,7 +170,7 @@ export default function HostScreen() {
       ...s,
       groups: s.groups.map((g) => (g.id === group.id ? { ...g, adjustment: val } : g)),
     }))
-    api.updateGroup(group.id, { adjustment: val }).catch(syncFail)
+    enqueue(() => api.updateGroup(group.id, { adjustment: val }))
   }
 
   function openDisplay() {
