@@ -5,6 +5,8 @@ import { correctAnswerOf } from '../lib/scoring'
 
 const LETTERS = ['א', 'ב', 'ג', 'ד']
 
+// העורך עובד "מקומי קודם": כל שינוי מתעדכן מיד במסך ונשמר ברקע.
+// אין טעינה מחדש מהשרת אחרי כל פעולה — כדי שטקסט באמצע הקלדה לא יימחק.
 export default function GameEditor() {
   const { gameId } = useParams()
   const navigate = useNavigate()
@@ -13,24 +15,41 @@ export default function GameEditor() {
   const [openId, setOpenId] = useState(null)
   const [newGroup, setNewGroup] = useState('')
 
-  async function reload() {
-    try {
-      setState(await api.loadFullGame(gameId))
-      setError('')
-    } catch (e) {
-      setError(e.message)
-    }
-  }
-
   useEffect(() => {
-    reload()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    api
+      .loadFullGame(gameId)
+      .then(setState)
+      .catch((e) => setError(e.message))
   }, [gameId])
 
   if (error) return <div className="app banner">{error}</div>
   if (!state) return <div className="center-screen muted">טוען…</div>
 
   const { game, groups, questions } = state
+
+  function fail(e) {
+    setError('שגיאה בשמירה: ' + e.message)
+  }
+
+  // ---------- עדכוני מצב מקומיים ----------
+
+  function patchQuestion(qid, patch) {
+    setState((s) => ({
+      ...s,
+      questions: s.questions.map((q) => (q.id === qid ? { ...q, ...patch } : q)),
+    }))
+  }
+
+  function patchAnswer(qid, aid, patch) {
+    setState((s) => ({
+      ...s,
+      questions: s.questions.map((q) =>
+        q.id === qid
+          ? { ...q, answers: q.answers.map((a) => (a.id === aid ? { ...a, ...patch } : a)) }
+          : q,
+      ),
+    }))
+  }
 
   // ---------- קבוצות ----------
 
@@ -39,36 +58,51 @@ export default function GameEditor() {
     const name = newGroup.trim()
     if (!name) return
     setNewGroup('')
-    await api.addGroup(gameId, name, groups.length)
-    reload()
+    try {
+      const g = await api.addGroup(gameId, name, groups.length)
+      setState((s) => ({ ...s, groups: [...s.groups, g] }))
+    } catch (e) {
+      fail(e)
+    }
   }
 
   async function renameGroup(g) {
     const name = prompt('שם הקבוצה:', g.name)
     if (!name || name === g.name) return
-    await api.updateGroup(g.id, { name })
-    reload()
+    setState((s) => ({
+      ...s,
+      groups: s.groups.map((x) => (x.id === g.id ? { ...x, name } : x)),
+    }))
+    api.updateGroup(g.id, { name }).catch(fail)
   }
 
   async function removeGroup(g) {
     if (!confirm(`להסיר את "${g.name}"? כל ההצבעות שלה יימחקו.`)) return
-    await api.deleteGroup(g.id)
-    reload()
+    setState((s) => ({ ...s, groups: s.groups.filter((x) => x.id !== g.id) }))
+    api.deleteGroup(g.id).catch(fail)
   }
 
   // ---------- שאלות ----------
 
   async function addQuestion() {
-    const q = await api.addQuestion(gameId, questions.length)
-    await reload()
-    setOpenId(q.id)
+    try {
+      const q = await api.addQuestion(gameId, questions.length)
+      setState((s) => ({ ...s, questions: [...s.questions, q] }))
+      setOpenId(q.id)
+    } catch (e) {
+      fail(e)
+    }
   }
 
   async function removeQuestion(q) {
     if (!confirm('למחוק את השאלה?')) return
-    await api.deleteQuestion(q.id)
-    if (q.image_path) await api.removeQuestionImage(q.image_path)
-    reload()
+    setState((s) => ({ ...s, questions: s.questions.filter((x) => x.id !== q.id) }))
+    try {
+      await api.deleteQuestion(q.id)
+      if (q.image_path) await api.removeQuestionImage(q.image_path)
+    } catch (e) {
+      fail(e)
+    }
   }
 
   async function move(q, delta) {
@@ -78,8 +112,9 @@ export default function GameEditor() {
     const reordered = [...questions]
     const [item] = reordered.splice(idx, 1)
     reordered.splice(target, 0, item)
-    await api.reorderQuestions(reordered.map((x, i) => ({ id: x.id, position: i })))
-    reload()
+    const withPos = reordered.map((x, i) => ({ ...x, position: i }))
+    setState((s) => ({ ...s, questions: withPos }))
+    api.reorderQuestions(withPos.map((x) => ({ id: x.id, position: x.position }))).catch(fail)
   }
 
   const readyCount = questions.filter(isReady).length
@@ -99,12 +134,25 @@ export default function GameEditor() {
           className="primary"
           onClick={() => navigate(`/game/${gameId}/host`)}
           disabled={readyCount === 0 || groups.length === 0}
+          title={
+            groups.length === 0
+              ? 'הוסף לפחות קבוצה אחת'
+              : readyCount === 0
+                ? 'צריך לפחות שאלה אחת מוכנה (נוסח, 2+ תשובות וסימון הנכונה)'
+                : ''
+          }
         >
           התחל לשחק
         </button>
       </div>
 
       <div className="app col" style={{ gap: '2rem' }}>
+        {error && (
+          <div className="banner" onClick={() => setError('')} style={{ cursor: 'pointer' }}>
+            {error} (לחץ לסגירה)
+          </div>
+        )}
+
         {/* ----- קבוצות ----- */}
         <section className="col">
           <h2 style={{ margin: 0 }}>קבוצות</h2>
@@ -159,12 +207,14 @@ export default function GameEditor() {
               gameId={gameId}
               open={openId === q.id}
               onToggle={() => setOpenId(openId === q.id ? null : q.id)}
-              onChanged={reload}
+              patchQuestion={patchQuestion}
+              patchAnswer={patchAnswer}
               onDelete={() => removeQuestion(q)}
               onMoveUp={() => move(q, -1)}
               onMoveDown={() => move(q, 1)}
               isFirst={i === 0}
               isLast={i === questions.length - 1}
+              onError={fail}
             />
           ))}
         </section>
@@ -184,59 +234,39 @@ function QuestionItem({
   gameId,
   open,
   onToggle,
-  onChanged,
+  patchQuestion,
+  patchAnswer,
   onDelete,
   onMoveUp,
   onMoveDown,
   isFirst,
   isLast,
+  onError,
 }) {
-  const [text, setText] = useState(q.text || '')
-  const [answers, setAnswers] = useState(q.answers)
   const [uploading, setUploading] = useState(false)
+  const ready = isReady(q)
 
-  useEffect(() => {
-    setText(q.text || '')
-    setAnswers(q.answers)
-  }, [q])
+  // שמירה ברקע: המסך כבר עודכן, רק מסנכרנים לשרת
+  const save = (promise) => promise.catch(onError)
 
-  const ready = isReady({ ...q, text, answers })
-
-  async function saveText() {
-    if (text === (q.text || '')) return
-    await api.updateQuestion(q.id, { text })
-    onChanged()
-  }
-
-  async function saveAnswer(a, value) {
-    setAnswers(answers.map((x) => (x.id === a.id ? { ...x, text: value } : x)))
-  }
-
-  async function commitAnswer(a) {
-    const local = answers.find((x) => x.id === a.id)
-    if (local.text === a.text) return
-    await api.updateAnswer(a.id, { text: local.text })
-    onChanged()
-  }
-
-  async function markCorrect(a) {
-    await api.setCorrectAnswer(q.id, a.id)
-    onChanged()
-  }
-
-  async function setWeight(w) {
-    await api.updateQuestion(q.id, { weight: w })
-    onChanged()
+  function markCorrect(a) {
+    // עדכון מקומי מיידי של כל התשובות, ואז שמירה
+    q.answers.forEach((x) => patchAnswer(q.id, x.id, { is_correct: x.id === a.id }))
+    save(api.setCorrectAnswer(q.id, a.id))
   }
 
   async function addOption() {
-    await api.addAnswer(q.id, answers.length)
-    onChanged()
+    try {
+      const a = await api.addAnswer(q.id, q.answers.length)
+      patchQuestion(q.id, { answers: [...q.answers, a] })
+    } catch (e) {
+      onError(e)
+    }
   }
 
-  async function removeOption(a) {
-    await api.deleteAnswer(a.id)
-    onChanged()
+  function removeOption(a) {
+    patchQuestion(q.id, { answers: q.answers.filter((x) => x.id !== a.id) })
+    save(api.deleteAnswer(a.id))
   }
 
   async function onImage(e) {
@@ -248,25 +278,29 @@ function QuestionItem({
       if (q.image_path) await api.removeQuestionImage(q.image_path)
       const path = await api.uploadQuestionImage(gameId, q.id, file)
       await api.updateQuestion(q.id, { image_path: path })
-      onChanged()
+      patchQuestion(q.id, { image_path: path })
+    } catch (e) {
+      onError(e)
     } finally {
       setUploading(false)
     }
   }
 
-  async function clearImage() {
-    await api.removeQuestionImage(q.image_path)
-    await api.updateQuestion(q.id, { image_path: null })
-    onChanged()
+  function clearImage() {
+    const old = q.image_path
+    patchQuestion(q.id, { image_path: null })
+    save(api.removeQuestionImage(old).then(() => api.updateQuestion(q.id, { image_path: null })))
   }
 
   return (
     <div className={`q-item ${open ? 'open' : ''}`}>
       <div className="q-head" onClick={onToggle}>
         <span className="q-num">{index + 1}</span>
-        <span className="q-title">{text || (q.image_path ? '(שאלת תמונה)' : 'שאלה ריקה')}</span>
+        <span className="q-title">{q.text || (q.image_path ? '(שאלת תמונה)' : 'שאלה ריקה')}</span>
         <span className="chip">{q.weight} נק'</span>
-        <span className={`chip ${ready ? 'ok' : 'warn'}`}>{ready ? 'מוכנה' : 'חסר מידע'}</span>
+        <span className={`chip ${ready ? 'ok' : 'warn'}`} title="מוכנה = נוסח או תמונה, לפחות 2 תשובות, וסימון הנכונה">
+          {ready ? 'מוכנה' : 'חסר מידע'}
+        </span>
         <span className="muted">{open ? '▲' : '▼'}</span>
       </div>
 
@@ -276,9 +310,9 @@ function QuestionItem({
             <span className="muted">נוסח השאלה</span>
             <textarea
               rows={2}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onBlur={saveText}
+              value={q.text || ''}
+              onChange={(e) => patchQuestion(q.id, { text: e.target.value })}
+              onBlur={() => save(api.updateQuestion(q.id, { text: q.text || '' }))}
               placeholder="מה השאלה?"
             />
           </label>
@@ -306,8 +340,10 @@ function QuestionItem({
           </div>
 
           <div className="col" style={{ gap: '0.5rem' }}>
-            <span className="muted">תשובות — לחץ על העיגול כדי לסמן את הנכונה</span>
-            {answers.map((a, i) => (
+            <span className="muted">
+              תשובות — אפשר למלא הכל ולסמן את הנכונה מתי שנוח (לחיצה על העיגול)
+            </span>
+            {q.answers.map((a, i) => (
               <div className="answer-row" key={a.id}>
                 <button
                   className={`correct-toggle ${a.is_correct ? 'on' : ''}`}
@@ -318,18 +354,18 @@ function QuestionItem({
                 </button>
                 <input
                   value={a.text}
-                  onChange={(e) => saveAnswer(a, e.target.value)}
-                  onBlur={() => commitAnswer(a)}
+                  onChange={(e) => patchAnswer(q.id, a.id, { text: e.target.value })}
+                  onBlur={() => save(api.updateAnswer(a.id, { text: a.text }))}
                   placeholder={`תשובה ${LETTERS[i]}`}
                 />
-                {answers.length > 2 && (
+                {q.answers.length > 2 && (
                   <button className="ghost danger" onClick={() => removeOption(a)}>
                     ✕
                   </button>
                 )}
               </div>
             ))}
-            {answers.length < 4 && (
+            {q.answers.length < 4 && (
               <button className="ghost" onClick={addOption}>
                 + הוסף תשובה
               </button>
@@ -340,7 +376,14 @@ function QuestionItem({
             <span className="muted">כמה השאלה שווה:</span>
             <div className="weight-picker">
               {[1, 2, 3, 4, 5].map((w) => (
-                <button key={w} className={q.weight === w ? 'on' : ''} onClick={() => setWeight(w)}>
+                <button
+                  key={w}
+                  className={q.weight === w ? 'on' : ''}
+                  onClick={() => {
+                    patchQuestion(q.id, { weight: w })
+                    save(api.updateQuestion(q.id, { weight: w }))
+                  }}
+                >
                   {w}
                 </button>
               ))}
