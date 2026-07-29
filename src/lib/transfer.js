@@ -56,24 +56,33 @@ export async function importGame(payload) {
     if (res.error) throw res.error
   }
 
-  for (const q of payload.questions || []) {
-    const { data: question, error: qErr } = await supabase
+  // הכל בשתי בקשות מרוכזות — כל השאלות, ואז כל התשובות.
+  // כך הייבוא לוקח שניות ולא נקטע באמצע.
+  const questions = payload.questions || []
+  if (questions.length) {
+    const { data: inserted, error: qErr } = await supabase
       .from('questions')
-      .insert({
-        game_id: game.id,
-        text: q.text,
-        image_path: q.image_path,
-        weight: q.weight,
-        position: q.position,
-      })
+      .insert(
+        questions.map((q, i) => ({
+          game_id: game.id,
+          text: q.text,
+          image_path: q.image_path,
+          weight: q.weight,
+          position: q.position ?? i,
+        })),
+      )
       .select()
-      .single()
     if (qErr) throw qErr
+    if (inserted.length !== questions.length) {
+      throw new Error(`נשמרו רק ${inserted.length} מתוך ${questions.length} שאלות`)
+    }
 
-    if (q.answers?.length) {
-      const aRes = await supabase
-        .from('answers')
-        .insert(q.answers.map((a) => ({ ...a, question_id: question.id })))
+    // הסדר בתשובה זהה לסדר השליחה — משדכים לפי אינדקס
+    const answerRows = questions.flatMap((q, i) =>
+      (q.answers || []).map((a) => ({ ...a, question_id: inserted[i].id })),
+    )
+    if (answerRows.length) {
+      const aRes = await supabase.from('answers').insert(answerRows)
       if (aRes.error) throw aRes.error
     }
   }

@@ -60,11 +60,14 @@ export default function GamesList() {
     refresh()
   }
 
+  const [importing, setImporting] = useState(false)
+
   async function onImportFile(e) {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
     setBusy(true)
+    setImporting(true)
     try {
       await importGame(JSON.parse(await file.text()))
       await refresh()
@@ -72,6 +75,7 @@ export default function GamesList() {
       setError('הייבוא נכשל: ' + err.message)
     } finally {
       setBusy(false)
+      setImporting(false)
     }
   }
 
@@ -108,6 +112,7 @@ export default function GamesList() {
         </form>
 
         {error && <div className="banner">{error}</div>}
+        {importing && <div className="banner info">מייבא את המשחק… אל תסגור את הדף.</div>}
 
         {loading ? (
           <div className="muted">טוען…</div>
