@@ -10,7 +10,6 @@ export default function HostScreen() {
   const navigate = useNavigate()
   const [state, setState] = useState(null)
   const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
 
   const reload = useCallback(async () => {
     try {
@@ -42,16 +41,16 @@ export default function HostScreen() {
 
   const board = withRanks(computeScores(groups, questions, votes))
 
-  async function setPhase(patch) {
-    setBusy(true)
-    try {
-      const updated = await api.updateGame(gameId, patch)
-      setState((s) => ({ ...s, game: updated }))
-    } catch (e) {
-      setError(e.message)
-    } finally {
-      setBusy(false)
-    }
+  // כל הפעולות "אופטימיות": המסך מתעדכן מיד, השמירה רצה ברקע.
+  // אם שמירה נכשלת — מוצגת שגיאה והמצב מסתנכרן מחדש מהשרת.
+  function syncFail(e) {
+    setError('שגיאה בשמירה: ' + e.message)
+    reload()
+  }
+
+  function setPhase(patch) {
+    setState((s) => ({ ...s, game: { ...s.game, ...patch } }))
+    api.updateGame(gameId, patch).catch(syncFail)
   }
 
   async function goToQuestion(idx) {
@@ -75,18 +74,25 @@ export default function HostScreen() {
     }
   }
 
-  async function vote(group, answer) {
+  function vote(group, answer) {
     // לחיצה חוזרת על אותה תשובה מבטלת את הרישום
     const existing = currentVotes.find((v) => v.group_id === group.id)
-    try {
-      if (existing && existing.answer_id === answer.id) {
-        await api.clearVote(current.id, group.id)
-      } else {
-        await api.castVote(current.id, group.id, answer.id)
-      }
-      reload()
-    } catch (e) {
-      setError(e.message)
+    const qid = current.id
+    if (existing && existing.answer_id === answer.id) {
+      setState((s) => ({
+        ...s,
+        votes: s.votes.filter((v) => !(v.question_id === qid && v.group_id === group.id)),
+      }))
+      api.clearVote(qid, group.id).catch(syncFail)
+    } else {
+      setState((s) => ({
+        ...s,
+        votes: [
+          ...s.votes.filter((v) => !(v.question_id === qid && v.group_id === group.id)),
+          { id: `tmp-${qid}-${group.id}`, question_id: qid, group_id: group.id, answer_id: answer.id },
+        ],
+      }))
+      api.castVote(qid, group.id, answer.id).catch(syncFail)
     }
   }
 
@@ -98,8 +104,11 @@ export default function HostScreen() {
     if (raw === null) return
     const val = parseInt(raw, 10)
     if (Number.isNaN(val)) return
-    await api.updateGroup(group.id, { adjustment: val })
-    reload()
+    setState((s) => ({
+      ...s,
+      groups: s.groups.map((g) => (g.id === group.id ? { ...g, adjustment: val } : g)),
+    }))
+    api.updateGroup(group.id, { adjustment: val }).catch(syncFail)
   }
 
   function openDisplay() {
@@ -132,7 +141,7 @@ export default function HostScreen() {
               <div className="muted">
                 טיפ: פתח קודם את מסך ההקרנה וגרור אותו למקרן/טלוויזיה, ואז לחץ התחל.
               </div>
-              <button className="primary" onClick={startGame} disabled={busy || questions.length === 0}>
+              <button className="primary" onClick={startGame} disabled={questions.length === 0}>
                 התחל את המשחק
               </button>
             </div>
@@ -168,7 +177,7 @@ export default function HostScreen() {
                   <span className="chip">{current.weight} נק'</span>
                   {phase === 'revealed' && <span className="chip ok">נחשפה</span>}
                   <div className="spacer" />
-                  <button className="ghost" onClick={() => goToQuestion(currentIdx - 1)} disabled={currentIdx === 0 || busy}>
+                  <button className="ghost" onClick={() => goToQuestion(currentIdx - 1)} disabled={currentIdx === 0}>
                     → הקודמת
                   </button>
                 </div>
@@ -254,11 +263,11 @@ export default function HostScreen() {
 
                 <div className="row">
                   {phase !== 'revealed' ? (
-                    <button className="primary" onClick={reveal} disabled={busy || !correct} style={{ flex: 1 }}>
+                    <button className="primary" onClick={reveal} disabled={!correct} style={{ flex: 1 }}>
                       {allVoted ? 'חשוף את התשובה 🎉' : `חשוף בכל זאת (${votedGroups.size}/${groups.length})`}
                     </button>
                   ) : (
-                    <button className="primary" onClick={next} disabled={busy} style={{ flex: 1 }}>
+                    <button className="primary" onClick={next} style={{ flex: 1 }}>
                       {currentIdx + 1 < questions.length ? 'לשאלה הבאה ←' : 'סיים את המשחק 🏁'}
                     </button>
                   )}
