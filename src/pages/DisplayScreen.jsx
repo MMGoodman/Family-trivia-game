@@ -60,7 +60,11 @@ export default function DisplayScreen() {
   // אנימציית "+3" כשקבוצה מקבלת נקודות
   useEffect(() => {
     if (!state) return
-    const board = computeScores(state.groups, state.questions, state.votes)
+    const board = computeScores(
+      state.groups,
+      state.questions,
+      votesForScoring(state.votes, state.game),
+    )
     const newGains = new Map()
     for (const g of board) {
       const prev = prevScores.current.get(g.id)
@@ -85,7 +89,7 @@ export default function DisplayScreen() {
   const correct = current ? correctAnswerOf(current) : null
 
   const currentVotes = current ? votes.filter((v) => v.question_id === current.id) : []
-  const board = withRanks(computeScores(groups, questions, votes))
+  const board = withRanks(computeScores(groups, questions, votesForScoring(votes, game)))
 
   return (
     <div className="display">
@@ -167,6 +171,14 @@ export default function DisplayScreen() {
       </div>
     </div>
   )
+}
+
+// הקהל לא רואה ניקוד על השאלה הנוכחית לפני החשיפה —
+// אחרת אפשר לנחש מי צדק לפי הקפיצה בלוח.
+function votesForScoring(votes, game) {
+  if (game.phase === 'revealed' || game.phase === 'finished') return votes
+  if (!game.current_question_id) return votes
+  return votes.filter((v) => v.question_id !== game.current_question_id)
 }
 
 // השעון הגדול שהקהל רואה: ספירה לאחור, מאדים ופועם ב-5 השניות האחרונות
