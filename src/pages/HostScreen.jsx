@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
 import * as api from '../lib/api'
 import { computeScores, withRanks, correctAnswerOf } from '../lib/scoring'
 
@@ -10,6 +11,19 @@ export default function HostScreen() {
   const navigate = useNavigate()
   const [state, setState] = useState(null)
   const [error, setError] = useState('')
+  const [timerEnd, setTimerEnd] = useState(null)
+  const channelRef = useRef(null)
+
+  // ערוץ שידור לשעון — מסך ההקרנה מאזין לו
+  useEffect(() => {
+    const ch = supabase.channel(`game-${gameId}`)
+    ch.subscribe()
+    channelRef.current = ch
+    return () => {
+      supabase.removeChannel(ch)
+      channelRef.current = null
+    }
+  }, [gameId])
 
   const reload = useCallback(async () => {
     try {
@@ -56,17 +70,50 @@ export default function HostScreen() {
     api.updateGame(gameId, patch).catch(syncFail)
   }
 
-  async function goToQuestion(idx) {
+  // ---------- שעון ----------
+
+  function sendTimer(endsAt) {
+    setTimerEnd(endsAt)
+    channelRef.current?.send({ type: 'broadcast', event: 'timer', payload: { endsAt } })
+  }
+
+  function startTimer(seconds) {
+    sendTimer(Date.now() + seconds * 1000)
+  }
+
+  function stopTimer() {
+    if (timerEnd) sendTimer(null)
+  }
+
+  function goToQuestion(idx) {
     if (idx < 0 || idx >= questions.length) return
-    await setPhase({ current_question_id: questions[idx].id, phase: 'question' })
+    stopTimer()
+    setPhase({ current_question_id: questions[idx].id, phase: 'question' })
   }
 
-  async function startGame() {
-    await goToQuestion(0)
+  function startGame() {
+    goToQuestion(0)
   }
 
-  async function reveal() {
-    await setPhase({ phase: 'revealed' })
+  function reveal() {
+    stopTimer()
+    setPhase({ phase: 'revealed' })
+  }
+
+  async function restartGame() {
+    if (
+      !confirm(
+        'להתחיל את המשחק מהתחלה?\n\nכל התשובות שנרשמו וההתאמות הידניות של הניקוד יימחקו.\nהשאלות והקבוצות יישארו כמו שהן.',
+      )
+    )
+      return
+    stopTimer()
+    try {
+      await api.resetGame(gameId, questions.map((q) => q.id))
+      await reload()
+    } catch (e) {
+      syncFail(e)
+    }
   }
 
   async function next() {
@@ -129,6 +176,11 @@ export default function HostScreen() {
         <button className="ghost" onClick={() => navigate(`/game/${gameId}/edit`)}>
           עריכת המשחק
         </button>
+        {(phase !== 'idle' || current) && (
+          <button className="ghost danger" onClick={restartGame}>
+            🔄 התחל מחדש
+          </button>
+        )}
         <button onClick={openDisplay}>פתח מסך הקרנה ↗</button>
       </div>
 
@@ -162,8 +214,8 @@ export default function HostScreen() {
               )}
               <div className="row">
                 <button onClick={() => goToQuestion(questions.length - 1)}>חזור לשאלה האחרונה</button>
-                <button className="ghost" onClick={() => setPhase({ phase: 'idle', current_question_id: null })}>
-                  אפס למסך פתיחה
+                <button className="ghost danger" onClick={restartGame}>
+                  🔄 התחל מהתחלה (מחיקת התוצאות)
                 </button>
               </div>
             </div>
@@ -222,8 +274,26 @@ export default function HostScreen() {
 
               {/* ---- רישום הצבעות ---- */}
               <div className="card col" style={{ gap: '0.75rem' }}>
-                <div className="row">
+                <div className="row wrap">
                   <b>רישום תשובות</b>
+                  {phase !== 'revealed' &&
+                    (timerEnd ? (
+                      <>
+                        <HostCountdown endsAt={timerEnd} />
+                        <button className="ghost" onClick={stopTimer}>
+                          עצור שעון
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button className="ghost" onClick={() => startTimer(30)}>
+                          ⏱ 30 שנ'
+                        </button>
+                        <button className="ghost" onClick={() => startTimer(60)}>
+                          ⏱ 60 שנ'
+                        </button>
+                      </>
+                    ))}
                   <div className="spacer" />
                   <span className={allVoted ? 'chip ok' : 'chip'}>
                     נרשמו {votedGroups.size} מתוך {groups.length}
@@ -307,5 +377,19 @@ export default function HostScreen() {
         </div>
       </div>
     </>
+  )
+}
+
+function HostCountdown({ endsAt }) {
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 250)
+    return () => clearInterval(t)
+  }, [])
+  const remaining = Math.max(0, Math.ceil((endsAt - now) / 1000))
+  return (
+    <span className="chip" style={remaining <= 5 ? { color: 'var(--bad)' } : undefined}>
+      ⏱ {remaining}
+    </span>
   )
 }

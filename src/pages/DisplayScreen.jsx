@@ -14,6 +14,7 @@ export default function DisplayScreen() {
   const [error, setError] = useState('')
   const prevScores = useRef(new Map())
   const [gains, setGains] = useState(new Map())
+  const [timerEnd, setTimerEnd] = useState(null)
 
   const reload = useCallback(async () => {
     try {
@@ -40,11 +41,18 @@ export default function DisplayScreen() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'answers' }, reload)
       .subscribe()
 
+    // שעון: המנחה משדר בערוץ נפרד
+    const timerChannel = supabase
+      .channel(`game-${gameId}`)
+      .on('broadcast', { event: 'timer' }, ({ payload }) => setTimerEnd(payload.endsAt))
+      .subscribe()
+
     // רשת ביטחון: ריענון כל 5 שניות גם אם אירוע חי הלך לאיבוד
     const interval = setInterval(reload, 5000)
 
     return () => {
       supabase.removeChannel(channel)
+      supabase.removeChannel(timerChannel)
       clearInterval(interval)
     }
   }, [gameId, reload])
@@ -81,6 +89,7 @@ export default function DisplayScreen() {
 
   return (
     <div className="display">
+      {timerEnd && !revealed && !finished && current && <TimerBubble endsAt={timerEnd} />}
       <div className="display-main">
         {finished ? (
           <FinalBoard board={board} gameName={game.name} />
@@ -156,6 +165,23 @@ export default function DisplayScreen() {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+// השעון הגדול שהקהל רואה: ספירה לאחור, מאדים ופועם ב-5 השניות האחרונות
+function TimerBubble({ endsAt }) {
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 200)
+    return () => clearInterval(t)
+  }, [])
+  const remaining = Math.ceil((endsAt - now) / 1000)
+  if (remaining < -3) return null // "הזמן נגמר" נעלם לבד אחרי שלוש שניות
+  const over = remaining <= 0
+  return (
+    <div className={`timer-bubble ${over ? 'over' : remaining <= 5 ? 'urgent' : ''}`}>
+      {over ? 'הזמן נגמר!' : remaining}
     </div>
   )
 }

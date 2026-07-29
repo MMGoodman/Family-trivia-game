@@ -491,6 +491,44 @@ a {
   font-size: clamp(0.9rem, 1.3vw, 1.3rem);
 }
 
+/* השעון של מסך ההקרנה */
+.timer-bubble {
+  position: fixed;
+  top: 2.5vh;
+  inset-inline-start: 2vw;
+  z-index: 50;
+  min-width: 2.4em;
+  padding: 0.3em 0.5em;
+  text-align: center;
+  font-size: clamp(2.2rem, 5vw, 4.5rem);
+  font-weight: 900;
+  border-radius: 999px;
+  background: var(--bg-2);
+  border: 4px solid var(--accent);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.45);
+}
+.timer-bubble.urgent {
+  border-color: var(--bad);
+  color: var(--bad);
+  animation: timer-pulse 1s infinite;
+}
+.timer-bubble.over {
+  border-color: var(--bad);
+  color: var(--bad);
+  font-size: clamp(1.3rem, 2.6vw, 2.4rem);
+}
+@keyframes timer-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
 .banner {
   background: #2a1517;
   border: 1px solid #52272b;

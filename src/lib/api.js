@@ -216,6 +216,18 @@ export async function clearVote(questionId, groupId) {
   if (error) throw error
 }
 
+// איפוס משחק: מוחק את כל ההצבעות ואת ההתאמות הידניות,
+// ומחזיר את המשחק למסך הפתיחה. השאלות והקבוצות נשארות.
+export async function resetGame(gameId, questionIds) {
+  if (questionIds.length) {
+    const { error } = await supabase.from('votes').delete().in('question_id', questionIds)
+    if (error) throw error
+  }
+  const g = await supabase.from('groups').update({ adjustment: 0 }).eq('game_id', gameId)
+  if (g.error) throw g.error
+  return updateGame(gameId, { phase: 'idle', current_question_id: null })
+}
+
 // ---------- תמונות ----------
 
 export async function uploadQuestionImage(gameId, questionId, file) {
